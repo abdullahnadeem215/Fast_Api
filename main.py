@@ -70,3 +70,13 @@ def delete_product(product_id:int):
         if each.get("id")==product_id:
             deleted_product = prod.pop(index)
             return {"status": "Product successfully deleted...","deleted_product":deleted_product}
+
+
+
+
+@app.post("/input")
+def json_input_handeling(data:dict):
+    return {
+        "action":"User_created_data",
+        "data":data
+    }
