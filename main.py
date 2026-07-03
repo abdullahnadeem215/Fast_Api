@@ -1,4 +1,5 @@
 from fastapi import FastAPI,Request,HTTPException,status
+from fastapi.responses import JSONResponse
 from products import prod
 from dtos import item,user_Response
 
@@ -16,15 +17,17 @@ def get_all_prod():
     return prod
 
 ##path parameters
-@app.get("/product/{product_id}", response_model=user_Response,status_code = status.HTTP_200_OK)
-def get_product(product_id:int):
+# @app.get("/product/{product_id}", response_model=user_Response,status_code = status.HTTP_200_OK)
+# def get_product(product_id:int):
     
-    for oneProduct in prod:
-        if product_id == oneProduct.get("id"):
-            return oneProduct
-    return {
-        "error":"This id has not been Present"
-    }
+#     for oneProduct in prod:
+#         if product_id == oneProduct.get("id"):
+#             return oneProduct
+#         else:
+#             raise HTTPException(
+#                 status_code=404,
+#                 detail="product not found for this ID"
+#             )
 
 ##Query Parameters
 @app.get("/product")
@@ -80,3 +83,24 @@ def json_input_handeling(data:dict):
         "action":"User_created_data",
         "data":data
     }
+
+
+class user_not_found_exception(Exception):
+    def __init__(self, name:str):
+        self.name = name
+
+@app.exception_handler(user_not_found_exception)
+def user_not_found(_:Request,exc: user_not_found_exception):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "message": f"Product {exc.name} not found!"
+        }
+    )
+
+@app.get("/product/{s_name}")
+def exception_find(s_name:str):
+    for product in prod:
+        if product["name"] == s_name:
+            return product
+    raise user_not_found_exception(s_name)
