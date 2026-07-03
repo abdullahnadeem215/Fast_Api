@@ -1,6 +1,6 @@
-from fastapi import FastAPI,Request
+from fastapi import FastAPI,Request,HTTPException,status
 from products import prod
-from dtos import item
+from dtos import item,user_Response
 
 
 app = FastAPI()
@@ -16,7 +16,7 @@ def get_all_prod():
     return prod
 
 ##path parameters
-@app.get("/product/{product_id}")
+@app.get("/product/{product_id}", response_model=user_Response,status_code = status.HTTP_200_OK)
 def get_product(product_id:int):
     
     for oneProduct in prod:
@@ -39,7 +39,7 @@ def get_product_ByRequest(request:Request):
 
     return  f"Hi {query_params.get("name")} your age is {query_params.get("age")}"
 
-@app.post("/add_product")
+@app.post("/add_product",status_code = status.HTTP_201_CREATED)
 def add_product(data:item):
     data = data.model_dump()
 
