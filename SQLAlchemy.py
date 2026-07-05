@@ -1,37 +1,51 @@
-from sqlalchemy import create_engine,Column,Integer,String
-from sqlalchemy.orm import sessionmaker,declarative_base,Session
+from sqlalchemy import create_engine,Column,String,Integer
+from sqlalchemy.orm import sessionmaker,Session,declarative_base
 from fastapi import FastAPI,Depends
-
 
 app = FastAPI()
 
-DATABASE_URL = "sqlite:///./data.db"
-engine = create_engine(
-    DATABASE_URL,
+DATA_BASE = "sqlite:///./DATABASE.db"
+
+engine  = create_engine(
+    DATA_BASE,
     connect_args={"check_same_thread":False}
 )
 
-localSession = sessionmaker(bind=engine)
-
+local_session= sessionmaker(bind=engine)
 Base = declarative_base()
 
-class Todos(Base):
-    __tablename__="todos"
-    id = Column(Integer,primary_key=True,index=True)
-    Title = Column(String)
-    Completed = Column(String)
+class Student(Base):
+    __tablename__="Student"
+
+    student_id = Column(Integer,primary_key=True,index=True)
+    student_name = Column(String)
+    student_roll_no = Column(String,unique=True)
 
 Base.metadata.create_all(bind=engine)
 
 def get_db():
-    db = localSession()
+    db = local_session()
     try:
         yield db
     finally:
         db.close()
 
-@app.get("/")
-def home(session: Session=Depends(get_db)):
+
+
+@app.post("/CreateStudent")
+def create_student(name:str,roll_no:str,db:Session=Depends(get_db)):
+    student = Student(student_name=name,student_roll_no=roll_no)
+    db.add(student)
+    db.commit()
+    db.refresh(student)
     return {
-        "status":"Database is Connected Right!"
+        "status":"Added Successfully...",
+        "Data":student
+    }
+@app.get("/all_students")
+def getStudents(db:Session=Depends(get_db)):
+    student = db.query(Student).all()
+    return {
+        "Total Students":len(student),
+        "Students":student
     }
