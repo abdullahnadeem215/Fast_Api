@@ -2,10 +2,10 @@ from fastapi import FastAPI,HTTPException,Depends,Header
 from datetime import datetime,timedelta,timezone
 from jose import jwt
 
+
 app = FastAPI()
 
-
-SECRET_KEY="mysecret"
+SECRET = "mysecret"
 
 ALGORITHM = "HS256"
 
@@ -17,19 +17,36 @@ def create_token(data:dict):
         "exp":expire
     })
 
-    token = jwt.encode(encode,SECRET_KEY,algorithm=ALGORITHM)
+    token = jwt.encode(encode,SECRET,ALGORITHM)
+    return token
 
 @app.post("/login")
 def login(username:str,password:str):
-    if username!="abdullah151" or password != "12345":
+    if username != "abdullah" or password != "12345":
         raise HTTPException(
             status_code=401,
-            detail="Invalid username or password..."
+            detail="Incorrect username or password..."
         )
     token = create_token({
         "user":username
     })
-
     return {
-        "token":token
+        "access_token":token
+    }
+
+def verify_token(token = Header(None)):
+    try:
+        payload = jwt.decode(token,SECRET,[ALGORITHM])
+        return payload
+    except:
+        raise HTTPException(
+            status_code=401,
+            detail="Token is not exist or Expired..."
+        )
+    
+@app.get("/dashboard")
+def dashboard(data=Depends(verify_token)):
+    return{
+        "message":"Successfully LogIn...",
+        "data":data
     }
