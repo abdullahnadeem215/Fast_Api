@@ -28,5 +28,5 @@ def check_token(token:str = Header(None)):
 @app.get("/secrets")
 def secrets(data:str = Depends(check_token)):
     return {
-        "status":data
+        "from_secrets":data
     }
